@@ -1,0 +1,150 @@
+package by.fxg.aeris.gui.intro;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.lwjgl.opengl.GL11;
+
+import by.fxg.aeris.gui.RHelper;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
+
+public class GuiIntro1 extends GuiScreen {
+	public static final Random rand = new Random();
+    public static List<Leaf> leafs = new ArrayList<Leaf>();
+    public double timer1 = 0, timer2 = 0, timer3 = 0, timer4 = 0, timer5 = 0, timer6 = 0, timer7 = 0, timer8 = 0;
+    public int tvar = 0;
+    public GuiIntroButton btn0;
+    public GuiIntro1() {
+    }
+
+    public void updateScreen() {
+    	ScaledResolution sr = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
+    	this.btn0.alpha = (float)(timer4 / 10.0D);
+    	if (timer1 < 4.75D) timer1 += (5.0D - timer1) / 8;
+    	else {
+    		timer1 = 4.75D;
+    		if (timer2 < 9.0D) timer2 += 0.725D;
+        	else {
+        		timer2 = 9.0D;
+        		if (timer3 < 15.0D) timer3 += 3.03D;
+        		else if (timer3 < 10.0D) {
+        			if (timer4 < 10.0D) timer4 += 0.75D;
+            		else timer4 = 10.0D;
+        		} else {
+        			timer3 = 15.0D;
+        			if (timer4 < 10.0D) timer4 += 0.5D;
+            		else timer4 = 10.0D;
+        			if (timer5 < 35.0D) timer5 += (35.0D - timer5) / 10;
+            		else timer5 = 35.0D;
+        			this.tvar++;
+        			if (this.tvar % 2 == 0) {
+        				this.tvar = 0;
+        				Leaf.add(sr.getScaledWidth());
+        			}
+        			for (int i = 0; i != this.leafs.size(); i++) {
+        				Leaf leaf = this.leafs.get(i);
+        				if (leaf.y >= sr.getScaledHeight()) {
+        					this.leafs.remove(i);
+        					continue;
+        				}
+        				double move = rand.nextDouble() / 5.0D;
+        				leaf.x += rand.nextBoolean() ? move : -move;
+        				move = rand.nextDouble() * 2.5D;
+        				leaf.y += move;
+        			}
+        		}
+        	}
+    	}
+    }
+
+    public boolean doesGuiPauseGame() {
+        return false;
+    }
+
+    protected void keyTyped(char par1, int par2) {
+    	if (par2 == 1) {
+    		timer1 = timer2 = timer3 = timer4 = timer5 = timer6 = timer7 = timer8 = 0;
+    		this.leafs.clear();
+    	}
+    }
+
+    public void initGui() {
+    	//this.controlList.add(new GuiButton(1, this.width / 2 - 100, par1, par3StringTranslate.translateKey("menu.singleplayer")));
+    	ScaledResolution sr = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
+    	this.controlList.add(this.btn0 = new GuiIntroButton(0, sr.getScaledWidth() / 4, sr.getScaledHeight() / 3 * 2, "keki", 
+    			0.75F, 0.1F, 0.25F, 
+    			0.25F, 0.75F, 0.1F,
+    			0.25F, 0.75F, 0.1F,
+    			0.75F, 0.1F, 0.25F
+    	));
+    }
+
+    protected void actionPerformed(GuiButton par1GuiButton) {
+        if (par1GuiButton.id == 0) {
+            //this.mc.displayGuiScreen(new GuiOptions(this, this.mc.gameSettings));
+        }
+    }
+    
+    public void drawScreen(int par1, int par2, float par3) {
+        ScaledResolution sr = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
+        RHelper.drawRect(0, 0, sr.getScaledWidth(), sr.getScaledWidth(), "0xFFFFFF", 1.0F);
+        double time3 = timer3 > 5 ? timer3 - 5 : 0;
+        double time4 = timer4 + timer4 / 2.5D;
+        String str = "A E R I S".substring(0, (int)timer2);
+        GL11.glPushMatrix();
+        RHelper.drawImage(
+        		sr.getScaledWidth() / 2 - (32 * timer1) / 2 - (time3 / 2) + (time4 / 1.25D), 
+        		sr.getScaledHeight() / 2 - (32 * timer1) / 2 - 20 - (time3 * 2) - (time4 / 2.0D), 
+        		"/mods/aeris/misc/emerald.png", 
+        		(32 * timer1) + (time3) - (time4 * 1.5D), 
+        		(32 * timer1) + (time3) - (time4 * 1.5D)
+        );
+        RHelper.renderText(
+        		str, 
+        		sr.getScaledWidth() / 2 - this.mc.fontRenderer.getStringWidth(str) / 2, 
+        		sr.getScaledHeight() / 2 + 50 - (int)(time3 * 1.25D) - (int)(time4 * 2.0D),
+        		0x0EE43C
+        );
+        int reed = 0;
+        for (int i = 0; i < sr.getScaledWidth();) {
+        	i += sr.getScaledWidth() % 32 * 2;
+        	RHelper.drawImage(i - 25, sr.getScaledHeight() - 8 - timer5, "/mods/aeris/misc/reed" + reed, 24, 48);
+        	if (reed > 3) reed = 0;
+        }
+        for (Leaf leaf : this.leafs) {
+        	RHelper.drawImage(leaf.x, leaf.y, "/mods/aeris/misc/leaf", 11, 6, leaf.rgb.getRed(), leaf.rgb.getGreen(), leaf.rgb.getBlue(), 255);
+        }
+        GL11.glPopMatrix();
+        GL11.glPushMatrix();
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(770, 771);
+        super.drawScreen(par1, par2, par3);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glPopMatrix();
+    }
+
+    protected void mouseClicked(int par1, int par2, int par3) {
+        super.mouseClicked(par1, par2, par3);
+    }
+    
+    public static class Leaf {
+    	public Color rgb;
+    	public double x, y;
+    	public Leaf(Color a, double... b) {
+    		this.rgb = a;
+    		this.x = b[0];
+    		this.y = b[1];
+    	}
+    	
+    	public static void add(int width) {
+    		if (GuiIntro1.leafs.size() < 128) {
+    			Leaf leaf = new Leaf(new Color(5 + GuiIntro1.rand.nextInt(25), 160 + GuiIntro1.rand.nextInt(70), GuiIntro1.rand.nextInt(15)), GuiIntro1.rand.nextInt(width + 1), -10);
+    			GuiIntro1.leafs.add(leaf);
+    		}
+    	}
+    }
+}
